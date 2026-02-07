@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "company": "Arista Networks",
+    "ticker": "ANET",
+    "date": "2026-02-07",
+    "document_type": "Investment_PM",
+    "version": "1.0"
+  },
+  "role_in_portfolio": {
+    "classification": "Core / AI-infrastructure quality",
+    "recommended_weight": "4-6%",
+    "time_horizon": "1-4 years"
+  },
+  "investment_thesis": {
+    "summary": "Arista Networks is a core AI-infrastructure beneficiary with dominant positioning in high-speed data center networking. Hyperscaler capex translates directly into revenue growth with strong margins."
+  },
+  "triggers": {
+    "green": [
+      "Hyperscaler capex remains elevated",
+      "Revenue growth >20%",
+      "Operating margin >35%"
+    ],
+    "red": [
+      "Hyperscaler capex slowdown",
+      "Material margin compression",
+      "Competitive pressure from Cisco or white-box vendors"
+    ]
+  },
+  "exit_logic": "Trim on valuation euphoria without revenue acceleration; exit only if AI-networking thesis breaks."
+}

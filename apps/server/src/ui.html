@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aktieportfölj</title>
+    <style>
+      :root { color-scheme: light; }
+      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; background: #0b1220; color: #e6e8ee; }
+      header { padding: 16px; background: #0f1a33; position: sticky; top: 0; border-bottom: 1px solid #1c2a52; }
+      header h1 { margin: 0; font-size: 18px; }
+      main { padding: 16px; max-width: 880px; margin: 0 auto; }
+      .card { background: #0f1a33; border: 1px solid #1c2a52; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+      .row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .row > * { flex: 1 1 180px; }
+      label { display: block; font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
+      input[type=file], textarea { width: 100%; box-sizing: border-box; background: #0b1220; color: #e6e8ee; border: 1px solid #1c2a52; border-radius: 10px; padding: 10px; }
+      textarea { min-height: 110px; resize: vertical; }
+      button { border: 1px solid #2a3e77; background: #1a2a55; color: #e6e8ee; border-radius: 10px; padding: 10px 12px; font-weight: 600; }
+      button:disabled { opacity: 0.6; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { border-bottom: 1px solid #1c2a52; padding: 10px 6px; text-align: left; font-size: 14px; }
+      .muted { opacity: 0.75; }
+      .pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; border: 1px solid #1c2a52; font-size: 12px; }
+      .pill.buy { border-color: #0c8; }
+      .pill.sell { border-color: #f66; }
+      .pill.hold { border-color: #8ad; }
+      .error { color: #ff8a8a; white-space: pre-wrap; }
+      .success { color: #74f7c5; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Aktieportfölj (MVP)</h1>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="row">
+          <div>
+            <label>Importera Avanza CSV</label>
+            <input id="csv" type="file" accept=".csv,text/csv" />
+          </div>
+          <div>
+            <label>Analys-filter (valfritt)</label>
+            <input
+              id="analyzeTicker"
+              placeholder="Endast ticker (t.ex. MEKO)"
+              style="width:100%; box-sizing:border-box; background:#0b1220; color:#e6e8ee; border:1px solid #1c2a52; border-radius:10px; padding:10px;"
+            />
+            <label style="margin-top:8px; display:flex; gap:8px; align-items:center; font-size:12px; opacity:0.9;">
+              <input id="onlyWithAnalysis" type="checkbox" />
+              Skicka bara innehav som har tes/PM (thesis docs)
+            </label>
+          </div>
+          <div style="display:flex; align-items:flex-end; gap:10px;">
+            <button id="btnImport">Importera</button>
+            <button id="btnAnalyze">Kör analys</button>
+          </div>
+        </div>
+        <div id="status" class="muted" style="margin-top:10px;"></div>
+        <div id="err" class="error" style="margin-top:10px;"></div>
+        <div class="muted" style="margin-top:10px;">
+          Tips: öppna samma URL från mobilen på ditt wifi/LAN. Servern startar oftast på
+          <code>http://&lt;din-mac-ip&gt;:3000</code>.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px 0; font-size: 16px;">Usage</h3>
+        <div id="usage" class="muted">Laddar...</div>
+  <div id="scheduler" class="muted" style="margin-top:8px;">Laddar scheduler...</div>
+      </div>
+
+      <div class="card">
+        <label>Portföljstrategi</label>
+        <textarea id="strategy" placeholder="Skriv din strategi här..."></textarea>
+        <div style="margin-top:10px; display:flex; gap:10px;">
+          <button id="btnSaveStrategy">Spara strategi</button>
+          <span id="strategySaved" class="success"></span>
+        </div>
+
+        <div style="margin-top:12px; border-top:1px solid #1c2a52; padding-top:12px;">
+          <label>Strategi-digest (rekommenderat för billigare analys)</label>
+          <textarea id="strategyDigest" placeholder="Kort, koncentrerad strategi: 10–20 bullets + regler..."></textarea>
+          <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+            <button id="btnSaveStrategyDigest">Spara digest</button>
+            <button id="btnGenerateStrategyDigest">Generera digest</button>
+            <span id="strategyDigestSaved" class="success"></span>
+          </div>
+          <div class="muted" style="margin-top:8px;">
+            Analysen använder digest om den finns, annars full strategi.
+          </div>
+        </div>
+        <div style="margin-top:12px; border-top:1px solid #1c2a52; padding-top:12px;">
+          <div class="muted" style="margin-bottom:6px;">Valfritt: ladda upp din <b>strukturerade strategi</b> som JSON (t.ex. <code>portfolio_strategy_v2.json</code>).</div>
+          <input id="strategyDocFile" type="file" accept="application/json,.json" />
+          <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+            <button id="btnUploadStrategyDoc">Ladda upp strategi-JSON</button>
+            <span id="strategyDocSaved" class="success"></span>
+          </div>
+        </div>
+        <div id="strategyDocInfo" class="muted" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px 0; font-size: 16px;">Innehav</h3>
+        <div class="muted" id="holdingsMeta"></div>
+        <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+          <button id="btnFetchQuotes">Hämta börskurser (Yahoo)</button>
+          <label class="muted" style="display:flex; gap:8px; align-items:center;">
+            <input id="selectAllHoldings" type="checkbox" />
+            Markera alla för analys
+          </label>
+          <button id="btnSaveHoldingsSelection">Spara markering</button>
+          <span id="quotesStatus" class="muted"></span>
+          <span id="holdingsSelectionStatus" class="muted"></span>
+        </div>
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr><th>Analys</th><th>Ticker</th><th>Namn</th><th>Antal</th><th>Kurs</th><th>Valuta</th></tr>
+            </thead>
+            <tbody id="holdings"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px 0; font-size: 16px;">Senaste analys</h3>
+        <div id="latestMeta" class="muted"></div>
+        <div id="latest"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px 0; font-size: 16px;">Tes per aktie</h3>
+        <div class="row">
+          <div>
+            <label>Ticker</label>
+            <input id="thTicker" placeholder="t.ex. INVE" style="width:100%; box-sizing:border-box; background:#0b1220; color:#e6e8ee; border:1px solid #1c2a52; border-radius:10px; padding:10px;" />
+          </div>
+          <div style="flex: 2 1 360px;">
+            <label>Tes</label>
+            <input id="thText" placeholder="Kort tes..." style="width:100%; box-sizing:border-box; background:#0b1220; color:#e6e8ee; border:1px solid #1c2a52; border-radius:10px; padding:10px;" />
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button id="btnSaveThesis">Spara tes</button>
+          </div>
+        </div>
+        <div style="margin-top:12px; border-top:1px solid #1c2a52; padding-top:12px;">
+          <div class="muted" style="margin-bottom:6px;">Rekommenderat: ladda upp ett <b>tes-dokument</b> som JSON per aktie (kräver <code>meta.ticker</code>).</div>
+          <input id="thesisDocFile" type="file" accept="application/json,.json" />
+          <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+            <button id="btnUploadThesisDoc">Ladda upp tes-dokument</button>
+            <span id="thesisDocSaved" class="success"></span>
+          </div>
+        </div>
+
+        <div id="thesesList" class="muted" style="margin-top:10px;"></div>
+        <div id="thesisDocsList" class="muted" style="margin-top:10px;"></div>
+        <div id="thesisDocViewer" class="muted" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px 0; font-size: 16px;">(Kommer) Importera teser från PDF</h3>
+        <div class="muted">
+          Du har PDF-investeringsteser per aktie. Nästa steg är att lägga till en endpoint som tar PDF,
+          kör text-extraktion, och sparar som tes knutet till ticker.
+        </div>
+      </div>
+
+  <p class="muted">Tips: Om du får 401 så kräver servern Basic Auth (APP_USER/APP_PASSWORD).</p>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const status = (msg) => { $('status').textContent = msg || ''; };
+      const error = (msg) => { $('err').textContent = msg || ''; };
+
+      function setBusy(button, busyText) {
+        if (!button) return () => {};
+        const prevText = button.textContent;
+        const prevDisabled = button.disabled;
+        button.disabled = true;
+        button.textContent = busyText || prevText;
+        return () => {
+          button.disabled = prevDisabled;
+          button.textContent = prevText;
+        };
+      }
+
+      function pill(action) {
+        const cls = action === 'KÖP' ? 'buy' : action === 'SÄLJ' ? 'sell' : 'hold';
+        return `<span class="pill ${cls}">${action}</span>`;
+      }
+
+      async function api(path, opts) {
+        const res = await fetch(path, opts);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data.error || `${res.status} ${res.statusText}`;
+          if (res.status === 401) {
+            throw new Error(`401 Unauthorized. Servern kräver login (Basic Auth). (${msg})`);
+          }
+          // Timeout returned from backend uses 200 with ok=false sometimes; but handle general errors too.
+          throw new Error(msg);
+        }
+        return data;
+      }
+
+      async function refresh() {
+        error('');
+        const p = await api('/api/portfolio');
+        $('strategy').value = p.strategy?.text || '';
+  $('strategyDigest').value = p.strategyDigest?.text || '';
+
+        if (p.portfolioStrategyDoc) {
+          $('strategyDocInfo').innerHTML = 'Strukturerad strategi (JSON): <b>laddad</b>.';
+        } else {
+          $('strategyDocInfo').innerHTML = 'Strukturerad strategi (JSON): <b>saknas</b> (valfritt).';
+        }
+
+        const holdings = p.holdings || [];
+        // quotesByTicker gets filled when user clicks "Hämta börskurser"
+        window.__quotesByTicker = window.__quotesByTicker || {};
+        const quotesByTicker = window.__quotesByTicker;
+
+        // Persisted selection fallback: if backend doesn't have analyze flags yet,
+        // we can restore the selection from localStorage.
+        const savedSel = (() => {
+          try {
+            const raw = localStorage.getItem('aktie_analyze_selection');
+            if (!raw) return {};
+            const obj = JSON.parse(raw);
+            return obj && typeof obj === 'object' ? obj : {};
+          } catch {
+            return {};
+          }
+        })();
+
+        const holdingsNorm = holdings.map((h) => {
+          const t = String(h.ticker || '').toUpperCase();
+          const analyze = h.analyze === true ? true : savedSel[t] === true ? true : false;
+          return { ...h, ticker: t, analyze };
+        });
+
+        const selectedCount = holdingsNorm.filter((h) => h.analyze === true).length;
+        const allSelected = holdingsNorm.length > 0 && selectedCount === holdingsNorm.length;
+        const noneSelected = selectedCount === 0;
+        const selectAllEl = $('selectAllHoldings');
+        if (selectAllEl) {
+          selectAllEl.checked = allSelected;
+          selectAllEl.indeterminate = !allSelected && !noneSelected;
+        }
+
+        $('holdingsMeta').textContent = holdings.length ? `${holdings.length} innehav` : 'Inga innehav importerade än.';
+        $('holdings').innerHTML = holdingsNorm
+          .map((h) => {
+            const q = quotesByTicker[String(h.ticker || '').toUpperCase()];
+            // Prefer live quote if fetched, otherwise show imported per-share avgPrice.
+            const price =
+              q?.price != null
+                ? String(q.price)
+                : h.avgPrice != null
+                  ? Number(h.avgPrice).toFixed(2)
+                  : '';
+            // Prefer quote currency if fetched, otherwise show imported currency.
+            const currency = q?.currency || h.currency || '';
+            const checked = h.analyze === true ? 'checked' : '';
+            return `<tr>
+              <td><input type="checkbox" class="analyzeHolding" data-ticker="${escapeHtml(String(h.ticker))}" ${checked} /></td>
+              <td>${escapeHtml(String(h.ticker))}</td>
+              <td>${escapeHtml(String(h.name || ''))}</td>
+              <td>${escapeHtml(String(h.quantity ?? ''))}</td>
+              <td>${escapeHtml(String(price))}</td>
+              <td>${escapeHtml(String(currency))}</td>
+            </tr>`;
+          })
+          .join('');
+
+        // Hook up per-row checkbox changes.
+        document.querySelectorAll('.analyzeHolding').forEach((el) => {
+          el.onchange = () => {
+            try {
+              const next = {};
+              document.querySelectorAll('.analyzeHolding').forEach((cb) => {
+                const ticker = String(cb.getAttribute('data-ticker') || '').toUpperCase();
+                if (!ticker) return;
+                next[ticker] = !!cb.checked;
+              });
+              localStorage.setItem('aktie_analyze_selection', JSON.stringify(next));
+            } catch {
+              // ignore
+            }
+
+            // Update select-all UI state
+            const cbs = Array.from(document.querySelectorAll('.analyzeHolding'));
+            const checkedCount = cbs.filter((cb) => cb.checked).length;
+            const all = cbs.length > 0 && checkedCount === cbs.length;
+            const none = checkedCount === 0;
+            const sa = $('selectAllHoldings');
+            if (sa) {
+              sa.checked = all;
+              sa.indeterminate = !all && !none;
+            }
+
+            // Auto-save to backend (debounced) so the server knows what to analyze.
+            scheduleHoldingsSelectionSave();
+          };
+        });
+
+        const theses = p.theses || [];
+        $('thesesList').innerHTML = theses.length
+          ? theses.map(t => `<div><b>${t.ticker}</b>: ${t.text} <span class="muted">(${new Date(t.updatedAt).toLocaleString()})</span></div>`).join('')
+          : '<div>Inga (legacy) teser sparade än.</div>';
+
+        const docs = p.thesisDocsIndex || [];
+        $('thesisDocsList').innerHTML = docs.length
+          ? `<div><b>Tes-dokument (JSON)</b>: ${docs
+              .map(
+                (d) =>
+                  `<a href="#" data-ticker="${d.ticker}" class="thesisDocLink">${d.ticker}</a>`
+              )
+              .join(', ')}</div>`
+          : '<div><b>Tes-dokument (JSON)</b>: inga ännu.</div>';
+
+        // Click-to-view thesis docs
+        document.querySelectorAll('.thesisDocLink').forEach((el) => {
+          el.onclick = async (ev) => {
+            ev.preventDefault();
+            const ticker = el.getAttribute('data-ticker');
+            if (!ticker) return;
+            try {
+              const res = await api(`/api/thesis-docs/${encodeURIComponent(ticker)}`);
+              $('thesisDocViewer').innerHTML = `<div style="margin-top:8px;"><b>${ticker}</b></div><pre style="white-space:pre-wrap; word-break:break-word; background:#0b1220; border:1px solid #1c2a52; border-radius:10px; padding:10px;">${escapeHtml(
+                JSON.stringify(res.doc, null, 2)
+              )}</pre>`;
+            } catch (e) {
+              $('thesisDocViewer').textContent = `Kunde inte läsa tes-dokument: ${e.message}`;
+            }
+          };
+        });
+
+        try {
+          const usage = await api('/api/usage');
+          const u = usage.usage;
+          $('usage').textContent =
+            `Requests: ${u.totalRequests}, inputTokens≈${u.totalInputTokens}, outputTokens≈${u.totalOutputTokens} ` +
+            `(uppdaterad ${new Date(u.updatedAt).toLocaleString()})`;
+        } catch (e) {
+          $('usage').textContent = `Kunde inte läsa usage: ${e.message}`;
+        }
+
+        try {
+          const sched = await api('/api/scheduler');
+          const s = sched.scheduler;
+          $('scheduler').textContent =
+            `Scheduler: ${s.enabled ? 'på' : 'av'}${s.running ? ' (kör nu)' : ''}. ` +
+            (s.nextRunAt ? `Nästa: ${new Date(s.nextRunAt).toLocaleString()}` : 'Nästa: okänd');
+        } catch (e) {
+          $('scheduler').textContent = `Kunde inte läsa scheduler: ${e.message}`;
+        }
+
+        const latest = await api('/api/analysis/latest');
+        const r = latest.latest;
+        if (!r) {
+          $('latestMeta').textContent = 'Ingen analys körd än.';
+          $('latest').innerHTML = '';
+        } else {
+          $('latestMeta').textContent = `${r.status.toUpperCase()} — ${new Date(r.createdAt).toLocaleString()}`;
+          if (r.status !== 'success') {
+            $('latest').innerHTML = `<div class="error">${r.error || 'Okänt fel'}</div>`;
+          } else {
+            const usageLine = r.usage
+              ? `<div class="muted" style="margin: 6px 0 10px 0;">Tokens: input≈${r.usage.inputTokensApprox}, output≈${r.usage.outputTokensApprox}${r.usage.provider ? ` (provider: ${r.usage.provider})` : ''}${r.usage.model ? ` (modell: ${r.usage.model})` : ''}${r.usage.strategyTruncated ? ' · (strategi trunkerad)' : ''}${r.usage.inputTruncated ? ' · (payload trunkerad)' : ''}</div>`
+              : '';
+            const rows = (r.recommendations || []).map(rec => `
+              <tr>
+                <td>${rec.ticker}</td>
+                <td>${pill(rec.action)} <span class="muted">(${rec.confidence})</span></td>
+                <td>${rec.rationale}</td>
+              </tr>
+            `).join('');
+            $('latest').innerHTML = `
+              <div class="muted" style="margin-bottom:8px;">${r.portfolioSummary || ''}</div>
+              ${usageLine}
+              <div style="overflow:auto;">
+                <table>
+                  <thead><tr><th>Ticker</th><th>Rek</th><th>Motivering</th></tr></thead>
+                  <tbody>${rows}</tbody>
+                </table>
+              </div>
+            `;
+          }
+        }
+      }
+
+      $('selectAllHoldings').onchange = () => {
+        const on = $('selectAllHoldings').checked;
+        document.querySelectorAll('.analyzeHolding').forEach((cb) => {
+          cb.checked = on;
+        });
+        // Persist to localStorage immediately.
+        try {
+          const next = {};
+          document.querySelectorAll('.analyzeHolding').forEach((cb) => {
+            const ticker = String(cb.getAttribute('data-ticker') || '').toUpperCase();
+            if (!ticker) return;
+            next[ticker] = !!cb.checked;
+          });
+          localStorage.setItem('aktie_analyze_selection', JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+
+        // Auto-save to backend
+        scheduleHoldingsSelectionSave();
+      };
+
+      let __saveSelTimer = null;
+      function scheduleHoldingsSelectionSave() {
+        if (__saveSelTimer) clearTimeout(__saveSelTimer);
+        __saveSelTimer = setTimeout(() => saveHoldingsSelectionToBackend().catch(() => {}), 350);
+      }
+
+      async function saveHoldingsSelectionToBackend() {
+        const portfolio = await api('/api/portfolio');
+        const holdings = portfolio.holdings || [];
+        const sel = {};
+        document.querySelectorAll('.analyzeHolding').forEach((cb) => {
+          const ticker = String(cb.getAttribute('data-ticker') || '').toUpperCase();
+          if (!ticker) return;
+          sel[ticker] = !!cb.checked;
+        });
+        const nextHoldings = holdings.map((h) => {
+          const t = String(h.ticker || '').toUpperCase();
+          return { ...h, ticker: t, analyze: sel[t] === true };
+        });
+        await api('/api/holdings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ holdings: nextHoldings }),
+        });
+      }
+
+      $('btnSaveHoldingsSelection').onclick = async () => {
+        const done = setBusy($('btnSaveHoldingsSelection'), 'Sparar…');
+        try {
+          error('');
+          $('holdingsSelectionStatus').textContent = 'Sparar markering...';
+
+          await saveHoldingsSelectionToBackend();
+          $('holdingsSelectionStatus').textContent = 'Sparat.';
+          await refresh();
+        } catch (e) {
+          $('holdingsSelectionStatus').textContent = '';
+          error(e.message);
+        } finally {
+          done();
+          setTimeout(() => {
+            if ($('holdingsSelectionStatus')) $('holdingsSelectionStatus').textContent = '';
+          }, 2000);
+        }
+      };
+
+      $('btnImport').onclick = async () => {
+        const done = setBusy($('btnImport'), 'Importerar…');
+        try {
+          error('');
+          status('Importerar...');
+          // Robustly resolve the selected CSV file.
+          // The file input id has changed a couple of times; don't assume a single id.
+          const fileInput =
+            document.getElementById('csv') ||
+            document.getElementById('csvFile') ||
+            document.getElementById('avanzaFile') ||
+            document.getElementById('importFile') ||
+            document.querySelector('input[type="file"][name="csv"]') ||
+            document.querySelector('input[type="file"][name="file"]') ||
+            document.querySelector('input[type="file"]');
+
+          const f = fileInput && 'files' in fileInput ? fileInput.files?.[0] : undefined;
+          if (!f) {
+            const known = ['csv', 'csvFile', 'avanzaFile', 'importFile']
+              .map((id) => `${id}:${document.getElementById(id) ? 'yes' : 'no'}`)
+              .join(', ');
+            throw new Error(`Välj en CSV-fil först. (Hittade filfält: ${known})`);
+          }
+          const fd = new FormData();
+          fd.append('file', f);
+          await api('/api/import/avanza', { method: 'POST', body: fd });
+          status('Import klar.');
+          await refresh();
+        } catch (e) {
+          error(e.message);
+        } finally {
+          done();
+          setTimeout(() => status(''), 2000);
+        }
+      };
+
+      $('btnAnalyze').onclick = async () => {
+        const done = setBusy($('btnAnalyze'), 'Analyserar…');
+        try {
+          error('');
+          status('Kör analys...');
+          const qp = new URLSearchParams();
+          const t = String($('analyzeTicker')?.value || '').trim();
+          if (t) qp.set('ticker', t);
+          if ($('onlyWithAnalysis')?.checked) qp.set('onlyWithAnalysis', '1');
+          const url = qp.toString() ? `/api/analyze?${qp.toString()}` : '/api/analyze';
+          const data = await api(url, { method: 'POST' });
+          if (data.ok === false) throw new Error(data.report?.error || 'Analys misslyckades');
+          status('Analys klar.');
+          await refresh();
+        } catch (e) {
+          const msg = String(e.message ?? e);
+          if (msg.toLowerCase().includes('timed out')) {
+            error('Analysen timeoutade (tog för lång tid). Prova igen eller höj ANALYSIS_TIMEOUT_MS.');
+          } else {
+            error(e.message);
+          }
+        } finally {
+          done();
+          setTimeout(() => status(''), 2000);
+        }
+      };
+
+      $('btnFetchQuotes').onclick = async () => {
+        const done = setBusy($('btnFetchQuotes'), 'Hämtar…');
+        $('quotesStatus').textContent = 'Hämtar från Yahoo…';
+        try {
+          const res = await api('/api/quotes/yahoo');
+          const quotes = res.quotes || [];
+          const by = {};
+          for (const q of quotes) {
+            if (q && q.symbol) by[String(q.symbol).toUpperCase()] = q;
+          }
+          window.__quotesByTicker = by;
+          $('quotesStatus').textContent = `Klart: ${quotes.length} kurser.`;
+          await refresh();
+        } catch (e) {
+          $('quotesStatus').textContent = 'Misslyckades.';
+          error(e.message || String(e));
+        } finally {
+          done();
+          setTimeout(() => {
+            if ($('quotesStatus').textContent?.startsWith('Klart')) $('quotesStatus').textContent = '';
+          }, 5000);
+        }
+      };
+
+      $('btnSaveStrategy').onclick = async () => {
+        const done = setBusy($('btnSaveStrategy'), 'Sparar…');
+        try {
+          error('');
+          $('strategySaved').textContent = '';
+          await api('/api/strategy', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: $('strategy').value || '' }),
+          });
+          $('strategySaved').textContent = 'Sparat.';
+          setTimeout(() => ($('strategySaved').textContent = ''), 1500);
+          await refresh();
+        } catch (e) {
+          error(e.message);
+        } finally {
+          done();
+        }
+      };
+
+      $('btnSaveStrategyDigest').onclick = async () => {
+        const done = setBusy($('btnSaveStrategyDigest'), 'Sparar…');
+        try {
+          error('');
+          $('strategyDigestSaved').textContent = '';
+          await api('/api/strategy-digest', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: $('strategyDigest').value || '' }),
+          });
+          $('strategyDigestSaved').textContent = 'Sparat.';
+          setTimeout(() => ($('strategyDigestSaved').textContent = ''), 1500);
+          await refresh();
+        } catch (e) {
+          error(e.message);
+        } finally {
+          done();
+        }
+      };
+
+      $('btnGenerateStrategyDigest').onclick = async () => {
+        const done = setBusy($('btnGenerateStrategyDigest'), 'Genererar…');
+        try {
+          error('');
+          status('Genererar digest...');
+          $('strategyDigestSaved').textContent = '';
+
+          const res = await api('/api/strategy-digest/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ strategyText: $('strategy').value || '' }),
+          });
+
+          $('strategyDigest').value = res.digest?.text || '';
+          $('strategyDigestSaved').textContent = `Genererad (${res.meta?.provider || 'ok'}).`;
+          setTimeout(() => ($('strategyDigestSaved').textContent = ''), 2000);
+          await refresh();
+        } catch (e) {
+          error(e.message);
+        } finally {
+          done();
+          setTimeout(() => status(''), 2000);
+        }
+      };
+
+      $('btnUploadStrategyDoc').onclick = async () => {
+        try {
+          error('');
+          status('Laddar upp strategi-JSON...');
+          $('strategyDocSaved').textContent = '';
+
+          const f = $('strategyDocFile').files[0];
+          if (!f) throw new Error('Välj en JSON-fil först.');
+          const text = await f.text();
+          let json;
+          try {
+            json = JSON.parse(text);
+          } catch {
+            throw new Error('Kunde inte tolka filen som JSON.');
+          }
+
+          await api('/api/portfolio-strategy', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(json),
+          });
+
+          $('strategyDocSaved').textContent = 'Uppladdat.';
+          setTimeout(() => ($('strategyDocSaved').textContent = ''), 1500);
+          await refresh();
+          status('');
+        } catch (e) {
+          error(e.message);
+        } finally {
+          setTimeout(() => status(''), 2000);
+        }
+      };
+
+      $('btnSaveThesis').onclick = async () => {
+        try {
+          error('');
+          const t = ($('thTicker').value || '').trim().toUpperCase();
+          const text = ($('thText').value || '').trim();
+          if (!t) throw new Error('Ticker saknas.');
+          if (!text) throw new Error('Tes-text saknas.');
+          await api(`/api/thesis/${encodeURIComponent(t)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text }),
+          });
+          $('thText').value = '';
+          await refresh();
+        } catch (e) {
+          error(e.message);
+        }
+      };
+
+      function escapeHtml(s) {
+        return String(s)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      $('btnUploadThesisDoc').onclick = async () => {
+        try {
+          error('');
+          status('Laddar upp tes-dokument...');
+          $('thesisDocSaved').textContent = '';
+
+          const f = $('thesisDocFile').files[0];
+          if (!f) throw new Error('Välj en JSON-fil först.');
+          const text = await f.text();
+          let json;
+          try {
+            json = JSON.parse(text);
+          } catch {
+            throw new Error('Kunde inte tolka filen som JSON.');
+          }
+
+          // Validate minimal shape client-side for better UX
+          const ticker = json?.meta?.ticker;
+          if (!ticker || typeof ticker !== 'string') {
+            throw new Error('JSON måste innehålla meta.ticker (t.ex. "INVE").');
+          }
+
+          await api('/api/thesis-docs', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(json),
+          });
+
+          $('thesisDocSaved').textContent = `Uppladdat (${String(ticker).toUpperCase()}).`;
+          setTimeout(() => ($('thesisDocSaved').textContent = ''), 2000);
+          await refresh();
+        } catch (e) {
+          error(e.message);
+        } finally {
+          setTimeout(() => status(''), 2000);
+        }
+      };
+
+      refresh().catch((e) => error(e.message));
+    </script>
+  </body>
+</html>

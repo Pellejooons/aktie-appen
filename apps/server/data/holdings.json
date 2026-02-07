@@ -1,0 +1,338 @@
+[
+  {
+    "ticker": "4COP",
+    "name": "Global X Copper Miners UCITS ETF USD Accumulating",
+    "quantity": 275,
+    "avgPrice": 594.1884,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "AMF AKTIEFOND SMÅBOLAG",
+    "name": "AMF Aktiefond Småbolag",
+    "quantity": 37.5426,
+    "avgPrice": 1141.1599090100312,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "AMZN",
+    "name": "Amazon.com",
+    "quantity": 6,
+    "avgPrice": 1897.78,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "ANET",
+    "name": "Arista Networks",
+    "quantity": 67,
+    "avgPrice": 1240.6135820895522,
+    "currency": "USD",
+    "analyze": true
+  },
+  {
+    "ticker": "ASML",
+    "name": "ASML Holding",
+    "quantity": 5,
+    "avgPrice": 12750.014,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "ATCO B",
+    "name": "Atlas Copco B",
+    "quantity": 159,
+    "avgPrice": 163,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "AVA SAMSUNG TRACKER",
+    "name": "AVA SAMSUNG TRACKER",
+    "quantity": 57,
+    "avgPrice": 315.40999999999997,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "AVANZA FASTIGHET BY NORHAMMAR",
+    "name": "Avanza Fastighet by Norhammar",
+    "quantity": 353.5749,
+    "avgPrice": 80.76000304320245,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "AVANZA ZERO",
+    "name": "Avanza Zero",
+    "quantity": 78.616375,
+    "avgPrice": 521.1900192548944,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "AVGO",
+    "name": "Broadcom",
+    "quantity": 12,
+    "avgPrice": 3004.036666666667,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "BUG",
+    "name": "Global X Cybersecurity UCITS ETF USD Accumulating",
+    "quantity": 500,
+    "avgPrice": 107.00508,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "BWE",
+    "name": "BW Energy Limited",
+    "quantity": 1334,
+    "avgPrice": 41.125727136431784,
+    "currency": "NOK",
+    "analyze": false
+  },
+  {
+    "ticker": "BWLPG",
+    "name": "BW LPG",
+    "quantity": 437,
+    "avgPrice": 147.7359038901602,
+    "currency": "NOK",
+    "analyze": false
+  },
+  {
+    "ticker": "CDIP",
+    "name": "Christian Dior SE",
+    "quantity": 13,
+    "avgPrice": 5383.299999999999,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "CRM",
+    "name": "Salesforce",
+    "quantity": 14,
+    "avgPrice": 1726.6085714285714,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "DNB FUND INDIA A SEK ACC",
+    "name": "DNB Fund India A SEK Acc",
+    "quantity": 12.79075,
+    "avgPrice": 2799.2174032015323,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "EVO",
+    "name": "Evolution",
+    "quantity": 102,
+    "avgPrice": 559.6,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "EXI5",
+    "name": "iShares STOXX Europe 600 Real Estate UCITS ETF (DE)",
+    "quantity": 85,
+    "avgPrice": 152.37400000000002,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "FLXI",
+    "name": "Franklin FTSE India UCITS ETF",
+    "quantity": 21,
+    "avgPrice": 399.75,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "JEDI",
+    "name": "VanEck Space Innovators UCITS ETF",
+    "quantity": 14,
+    "avgPrice": 721.0421428571428,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "K2A PREF",
+    "name": "K2A Knaust & Andersson Fastigheter Pref",
+    "quantity": 637,
+    "avgPrice": 136.2,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "KLAR",
+    "name": "Klarna Group",
+    "quantity": 176,
+    "avgPrice": 185.158125,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "LIME",
+    "name": "Lime Technologies",
+    "quantity": 170,
+    "avgPrice": 245,
+    "currency": "SEK",
+    "analyze": true
+  },
+  {
+    "ticker": "MEKO",
+    "name": "MEKO",
+    "quantity": 558,
+    "avgPrice": 72.5,
+    "currency": "SEK",
+    "analyze": true
+  },
+  {
+    "ticker": "MSFT",
+    "name": "Microsoft",
+    "quantity": 23,
+    "avgPrice": 3619.60652173913,
+    "currency": "USD",
+    "analyze": true
+  },
+  {
+    "ticker": "MTG B",
+    "name": "MTG B",
+    "quantity": 645,
+    "avgPrice": 93.6,
+    "currency": "SEK",
+    "analyze": true
+  },
+  {
+    "ticker": "NOW",
+    "name": "ServiceNow",
+    "quantity": 20,
+    "avgPrice": 909.007,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "NVDA",
+    "name": "NVIDIA",
+    "quantity": 22,
+    "avgPrice": 1673.01,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "ONEF",
+    "name": "Oneflow",
+    "quantity": 1331,
+    "avgPrice": 21.8,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "PANW",
+    "name": "Palo Alto Networks",
+    "quantity": 25,
+    "avgPrice": 1437.592,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "PEN",
+    "name": "Panoro Energy",
+    "quantity": 402,
+    "avgPrice": 20.49300995024876,
+    "currency": "NOK",
+    "analyze": false
+  },
+  {
+    "ticker": "RECO",
+    "name": "Reconnaissance Energy Africa Ltd",
+    "quantity": 3289,
+    "avgPrice": 5.408884159318942,
+    "currency": "CAD",
+    "analyze": false
+  },
+  {
+    "ticker": "SCST",
+    "name": "Scandi Standard",
+    "quantity": 312,
+    "avgPrice": 118.2,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "SECU B",
+    "name": "Securitas B",
+    "quantity": 244,
+    "avgPrice": 159.15,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "SLVR",
+    "name": "Global X Silver Miners UCITS ETF USD Accumulating",
+    "quantity": 327,
+    "avgPrice": 419.4710091743119,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "TSM",
+    "name": "Taiwan Semicond Mfg Co",
+    "quantity": 74,
+    "avgPrice": 3147.778243243243,
+    "currency": "USD",
+    "analyze": false
+  },
+  {
+    "ticker": "UBUD",
+    "name": "UBS Solactive Global Pure Gold Miners UCITS ETF USD dis",
+    "quantity": 250,
+    "avgPrice": 519.7816,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "VEFAB",
+    "name": "VEF",
+    "quantity": 15763,
+    "avgPrice": 2.02,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "VNV",
+    "name": "VNV Global",
+    "quantity": 3468,
+    "avgPrice": 18.310000000000002,
+    "currency": "SEK",
+    "analyze": false
+  },
+  {
+    "ticker": "VSURE",
+    "name": "Verisure",
+    "quantity": 140,
+    "avgPrice": 127.92,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "XESX",
+    "name": "Xtrackers Euro Stoxx 50 UCITS ETF 1D",
+    "quantity": 22,
+    "avgPrice": 664.6509090909091,
+    "currency": "EUR",
+    "analyze": false
+  },
+  {
+    "ticker": "ZZ B",
+    "name": "Zinzino B",
+    "quantity": 109,
+    "avgPrice": 130.8,
+    "currency": "SEK",
+    "analyze": false
+  }
+]

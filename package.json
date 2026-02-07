@@ -1,0 +1,14 @@
+{
+  "name": "aktie-bmad",
+  "private": true,
+  "version": "0.0.1",
+  "packageManager": "npm@10",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm -w apps/server run dev",
+    "build": "npm -w apps/server run build",
+    "test": "npm -w apps/server run test"
+  }
+}

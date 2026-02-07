@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "ticker": "TEST",
+    "company": "Test AB"
+  },
+  "investment_thesis": {
+    "summary": "x"
+  }
+}

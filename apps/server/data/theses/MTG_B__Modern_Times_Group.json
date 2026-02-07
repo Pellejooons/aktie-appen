@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "company": "Modern Times Group",
+    "ticker": "MTG B",
+    "date": "2026-02-07",
+    "document_type": "Investment_PM",
+    "version": "1.0"
+  },
+  "role_in_portfolio": {
+    "classification": "Quality / Re-rating case",
+    "recommended_weight": "2-4%",
+    "time_horizon": "1-3 years"
+  },
+  "investment_thesis": {
+    "summary": "MTG has undergone a structural transformation and now delivers strong EBITDA growth, high margins and solid cash flow. The equity is down ~20% despite operational improvement, creating a re-rating opportunity.",
+    "key_points": [
+      "Strong EBITDA and cash flow improvement",
+      "High-margin live-ops gaming model",
+      "Active share buybacks support EPS",
+      "Market still pricing legacy MTG narrative"
+    ]
+  },
+  "fundamentals": {
+    "organic_growth_q4": "8%",
+    "organic_growth_fy": "9%",
+    "ebitda_margin": "23%",
+    "ebitda_growth_q4_yoy": "58%",
+    "operating_cash_flow_q4": "SEK 840m",
+    "cash_conversion": "66%",
+    "net_debt_to_ebitda": "1.0–1.6x",
+    "buybacks": "SEK 400m ongoing"
+  },
+  "triggers": {
+    "green": [
+      "EBITDA margin >= 22%",
+      "Stable or improving UA ROI",
+      "Cash flow continues to fund buybacks"
+    ],
+    "yellow": [
+      "Growth slows but margins and cash flow remain intact"
+    ],
+    "red": [
+      "Material margin compression",
+      "Deteriorating cash conversion",
+      "Aggressive UA spend without ROI"
+    ]
+  },
+  "risks": [
+    "User acquisition cost inflation",
+    "Mobile gaming competition",
+    "FX headwinds (USD/SEK)",
+    "Execution risk in new launches"
+  ],
+  "exit_logic": {
+    "conditions": [
+      "Cash flow profile deteriorates",
+      "Margins fall structurally below low-20s",
+      "Capital allocation turns growth-at-any-cost"
+    ],
+    "action": "Trim or exit"
+  },
+  "one_liner": "MTG is a much stronger company than the share price implies, with cash flow and margin discipline driving a medium-term re-rating."
+}

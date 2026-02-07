@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "company": "MEKO AB",
+    "ticker": "MEKO",
+    "date": "2026-02-07",
+    "document_type": "Investment_PM",
+    "version": "1.0"
+  },
+  "role_in_portfolio": {
+    "classification": "Turnaround / Value option",
+    "recommended_weight": "1-3%",
+    "time_horizon": "6-24 months"
+  },
+  "investment_thesis": {
+    "summary": "MEKO is exiting a heavy investment phase and entering a period where modest operational improvements can translate into strong cash flow, debt reduction and potential multiple expansion."
+  },
+  "triggers": {
+    "green": [
+      "Net debt / EBITDA < 3.3x",
+      "Two consecutive quarters of stable or improving EBIT margin",
+      "Operating cash flow used for amortisation"
+    ],
+    "red": [
+      "No debt reduction by Q1 2026",
+      "Margins remain structurally weak",
+      "Management delays improvement timeline"
+    ]
+  },
+  "exit_logic": "Trim or exit if debt and margin improvement fail to materialise."
+}

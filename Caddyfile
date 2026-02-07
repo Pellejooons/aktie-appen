@@ -1,0 +1,22 @@
+{
+  # Caddy stores certs/config in these dirs (auto-created).
+  email you@example.com
+}
+
+# ---- Local HTTPS (recommended for dev on LAN) ----
+# 1) Add to /etc/hosts:
+#    127.0.0.1 aktie.local
+# 2) Run: caddy run
+# 3) Trust the local CA once: caddy trust
+aktie.local {
+  reverse_proxy 127.0.0.1:3000
+}
+
+# ---- LAN IP HTTPS (optional) ----
+# If you want to reach the app from your phone over Wi-Fi using an IP,
+# you can use an internal/self-signed cert. You'll need to trust it on the phone.
+# Replace 192.168.0.10 with your Mac's LAN IP.
+# https://192.168.0.10 {
+#   tls internal
+#   reverse_proxy 127.0.0.1:3000
+# }
