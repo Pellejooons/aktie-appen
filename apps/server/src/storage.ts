@@ -53,6 +53,7 @@ export async function setStrategy(text: string): Promise<Strategy> {
 export type StrategyDigest = { text: string; updatedAt: string };
 
 export async function getStrategyDigest(): Promise<StrategyDigest> {
+  // Always read from disk (same behavior as getStrategy) to avoid any stale in-memory state.
   return readJsonFile<StrategyDigest>('strategy_digest.json', { text: '', updatedAt: new Date(0).toISOString() });
 }
 

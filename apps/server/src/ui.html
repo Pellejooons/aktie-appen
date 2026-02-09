@@ -5,28 +5,268 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aktieportfölj</title>
     <style>
-      :root { color-scheme: light; }
-      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; background: #0b1220; color: #e6e8ee; }
-      header { padding: 16px; background: #0f1a33; position: sticky; top: 0; border-bottom: 1px solid #1c2a52; }
-      header h1 { margin: 0; font-size: 18px; }
-      main { padding: 16px; max-width: 880px; margin: 0 auto; }
-      .card { background: #0f1a33; border: 1px solid #1c2a52; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+      :root {
+        --bg: #0b1220;
+        --card: #0f1a33;
+        --text: #e6e8ee;
+        --muted: rgba(230, 232, 238, 0.72);
+        --border: rgba(28, 42, 82, 0.85);
+        --brand: #7aa7ff;
+        --ok: #74f7c5;
+        --bad: #ff8a8a;
+        --warn: #ffd48a;
+        --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --appHeaderH: 54px;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 600px at 15% -10%, rgba(122, 167, 255, 0.14), transparent 45%),
+          radial-gradient(900px 500px at 110% 10%, rgba(116, 247, 197, 0.09), transparent 35%),
+          var(--bg);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+
+      button {
+        border-radius: 12px;
+        border: 1px solid rgba(122, 167, 255, 0.35);
+        background: rgba(26, 42, 85, 0.78);
+        color: #eef2ff;
+        padding: 10px 14px;
+        font-weight: 750;
+        cursor: pointer;
+        transition: transform 80ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+        position: relative;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      button:hover {
+        border-color: rgba(122, 167, 255, 0.85);
+        background: rgba(26, 42, 85, 1);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+      }
+      button:active {
+        transform: translateY(2px) scale(0.99);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
+      }
+      button:disabled { opacity: 0.6; cursor: not-allowed; }
+      button:focus-visible {
+        outline: none;
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18), 0 0 0 3px rgba(122, 167, 255, 0.35);
+      }
+      .btn-primary {
+        background: linear-gradient(180deg, rgba(122, 167, 255, 0.55), rgba(122, 167, 255, 0.28));
+        border-color: rgba(122, 167, 255, 0.85);
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(122, 167, 255, 0.18) inset;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(180deg, rgba(122, 167, 255, 0.70), rgba(122, 167, 255, 0.36));
+      }
+      .btn-primary:active {
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(122, 167, 255, 0.10) inset;
+      }
+      header {
+        padding: 12px 14px;
+  background: rgba(15, 26, 51, 0.9);
+        backdrop-filter: blur(10px);
+        position: sticky;
+        top: 0;
+  border-bottom: 1px solid var(--border);
+        z-index: 10;
+      }
+      header h1 { margin: 0; font-size: 16px; letter-spacing: 0.2px; }
+      main { padding: 12px; max-width: 920px; margin: 0 auto; }
+
+      .card {
+  background: linear-gradient(180deg, rgba(15, 26, 51, 1), rgba(12, 21, 44, 1));
+  border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+        margin-bottom: 10px;
+  box-shadow: var(--shadow);
+      }
       .row { display: flex; gap: 10px; flex-wrap: wrap; }
-      .row > * { flex: 1 1 180px; }
-      label { display: block; font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
-      input[type=file], textarea { width: 100%; box-sizing: border-box; background: #0b1220; color: #e6e8ee; border: 1px solid #1c2a52; border-radius: 10px; padding: 10px; }
-      textarea { min-height: 110px; resize: vertical; }
-      button { border: 1px solid #2a3e77; background: #1a2a55; color: #e6e8ee; border-radius: 10px; padding: 10px 12px; font-weight: 600; }
-      button:disabled { opacity: 0.6; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { border-bottom: 1px solid #1c2a52; padding: 10px 6px; text-align: left; font-size: 14px; }
-      .muted { opacity: 0.75; }
-      .pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; border: 1px solid #1c2a52; font-size: 12px; }
-      .pill.buy { border-color: #0c8; }
-      .pill.sell { border-color: #f66; }
-      .pill.hold { border-color: #8ad; }
-      .error { color: #ff8a8a; white-space: pre-wrap; }
-      .success { color: #74f7c5; }
+      .row > * { flex: 1 1 200px; min-width: 200px; }
+
+      @media (max-width: 560px) {
+        main { padding: 10px; }
+        .row > * { flex: 1 1 100%; min-width: 0; }
+      }
+
+      h3 { font-size: 14px; margin: 0 0 8px 0; }
+      label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
+      input[type='file'], input[type='text'], input[type='number'], textarea {
+        width: 100%;
+  background: rgba(11, 18, 32, 0.8);
+        color: var(--text);
+  border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 10px;
+        outline: none;
+      }
+      input:focus, textarea:focus {
+  border-color: rgba(122, 167, 255, 0.7);
+  box-shadow: 0 0 0 3px rgba(122, 167, 255, 0.12);
+      }
+      textarea { min-height: 100px; resize: vertical; }
+
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+      /* Modal (per-aktie tes-editor) */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 12px;
+        z-index: 50;
+      }
+      .modal {
+        width: 100%;
+        max-width: 920px;
+        background: linear-gradient(180deg, rgba(15, 26, 51, 1), rgba(12, 21, 44, 1));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .modal header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        padding: 12px 12px;
+        background: rgba(15, 26, 51, 0.92);
+        border-bottom: 1px solid var(--border);
+      }
+      .modal header .title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .modal .body { padding: 12px; }
+      .modal .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+      .btn-quiet { background: rgba(11, 18, 32, 0.65); border-color: rgba(28, 42, 82, 0.9); }
+      .btn-quiet:hover { background: rgba(11, 18, 32, 0.9); }
+      .segmented {
+        display: inline-flex;
+        gap: 6px;
+        padding: 6px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(11, 18, 32, 0.35);
+      }
+      .segmented button {
+        padding: 8px 10px;
+        border-radius: 999px;
+        box-shadow: none;
+      }
+      .segmented button.active {
+        background: rgba(122, 167, 255, 0.22);
+        border-color: rgba(122, 167, 255, 0.65);
+      }
+
+      /* Compact per-row thesis edit button */
+      .btn-mini {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 750;
+        font-size: 12px;
+        letter-spacing: 0.1px;
+        box-shadow: none;
+        background: rgba(11, 18, 32, 0.55);
+        border-color: rgba(28, 42, 82, 0.9);
+        white-space: nowrap;
+        line-height: 1.1;
+      }
+      .btn-mini:hover { background: rgba(11, 18, 32, 0.85); }
+      .btn-mini:active { transform: translateY(1px); }
+      .btn-mini .badge { opacity: 0.85; font-weight: 850; }
+      .btn-mini .label { opacity: 0.95; }
+
+      /* On very small screens, reduce text further */
+      .btn-mini .label-short { display: none; }
+      @media (max-width: 520px) {
+        .btn-mini { padding: 6px 8px; font-size: 12px; }
+        .btn-mini .label { display: none; }
+        .btn-mini .label-short { display: inline; }
+      }
+
+      button {
+  border: 1px solid rgba(122, 167, 255, 0.35);
+  background: rgba(26, 42, 85, 0.75);
+        color: var(--text);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-weight: 650;
+        letter-spacing: 0.15px;
+        cursor: pointer;
+  transition: transform 0.06s ease, border-color 0.15s ease, background 0.15s ease;
+      }
+      button:hover {
+  border-color: rgba(122, 167, 255, 0.75);
+  background: rgba(26, 42, 85, 0.95);
+      }
+      button:active { transform: translateY(1px); }
+      button:disabled { opacity: 0.6; cursor: not-allowed; }
+      .btn-primary {
+  background: rgba(122, 167, 255, 0.22);
+  border-color: rgba(122, 167, 255, 0.6);
+      }
+      .btn-primary:hover {
+  background: rgba(122, 167, 255, 0.30);
+      }
+
+      table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; font-size: 13px; }
+  /* Sticky header: use a CSS var so it matches the actual fixed header height */
+  thead th { position: sticky; top: var(--appHeaderH); background: rgba(15, 26, 51, 0.95); backdrop-filter: blur(8px); z-index: 6; }
+  tbody tr:nth-child(even) { background: rgba(11, 18, 32, 0.25); }
+  /* Avoid clipping sticky header inside scroll container */
+  .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 12px; -webkit-overflow-scrolling: touch; }
+
+  /* Mobile Safari often breaks scroll when sticky headers live inside overflow containers.
+     Disable sticky headers on small screens to ensure the first rows are reachable. */
+  @media (max-width: 720px) {
+    thead th { position: static; top: auto; }
+  }
+
+      /* Mobile: reduce horizontal scrolling in Holdings by combining Kurs+Valuta */
+      .holdingsPriceCompact { display: none; white-space: nowrap; }
+      .holdingsValueCompact { display: none; white-space: nowrap; }
+      @media (max-width: 520px) {
+        th.col-price, td.col-price,
+        th.col-currency, td.col-currency,
+        th.col-value, td.col-value {
+          display: none;
+        }
+        th.col-price-compact, td.col-price-compact { display: table-cell; }
+        .holdingsPriceCompact { display: inline; }
+
+        th.col-value-compact, td.col-value-compact { display: table-cell; }
+        .holdingsValueCompact { display: inline; }
+      }
+
+      .muted { color: var(--muted); }
+      .pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); font-size: 12px; }
+  .pill.buy { border-color: #0c8; }
+  .pill.sell { border-color: rgba(255, 102, 102, 0.85); }
+  .pill.hold { border-color: rgba(138, 173, 255, 0.75); }
+
+      .alert { border-radius: 12px; padding: 10px 12px; border: 1px solid var(--border); background: rgba(11, 18, 32, 0.55); }
+  .alert { border: 1px solid var(--border); background: rgba(11, 18, 32, 0.55); }
+  .alert.error { border-color: rgba(255, 138, 138, 0.35); color: var(--bad); white-space: pre-wrap; }
+  .alert.success { border-color: rgba(52, 211, 153, 0.35); color: var(--ok); }
+  code { background: rgba(11, 18, 32, 0.65); padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(28, 42, 82, 0.8); }
     </style>
   </head>
   <body>
@@ -46,20 +286,19 @@
             <input
               id="analyzeTicker"
               placeholder="Endast ticker (t.ex. MEKO)"
-              style="width:100%; box-sizing:border-box; background:#0b1220; color:#e6e8ee; border:1px solid #1c2a52; border-radius:10px; padding:10px;"
             />
             <label style="margin-top:8px; display:flex; gap:8px; align-items:center; font-size:12px; opacity:0.9;">
               <input id="onlyWithAnalysis" type="checkbox" />
               Skicka bara innehav som har tes/PM (thesis docs)
             </label>
           </div>
-          <div style="display:flex; align-items:flex-end; gap:10px;">
+          <div class="actions" style="justify-content:flex-end; align-items:flex-end;">
             <button id="btnImport">Importera</button>
-            <button id="btnAnalyze">Kör analys</button>
+            <button id="btnAnalyze" class="btn-primary">Kör analys</button>
           </div>
         </div>
-        <div id="status" class="muted" style="margin-top:10px;"></div>
-        <div id="err" class="error" style="margin-top:10px;"></div>
+        <div id="status" class="alert" style="margin-top:10px; display:none;"></div>
+        <div id="err" class="alert error" style="margin-top:10px; display:none;"></div>
         <div class="muted" style="margin-top:10px;">
           Tips: öppna samma URL från mobilen på ditt wifi/LAN. Servern startar oftast på
           <code>http://&lt;din-mac-ip&gt;:3000</code>.
@@ -68,7 +307,7 @@
 
       <div class="card">
         <h3 style="margin:0 0 8px 0; font-size: 16px;">Usage</h3>
-        <div id="usage" class="muted">Laddar...</div>
+  <div id="usage" class="muted">Laddar...</div>
   <div id="scheduler" class="muted" style="margin-top:8px;">Laddar scheduler...</div>
       </div>
 
@@ -83,6 +322,10 @@
         <div style="margin-top:12px; border-top:1px solid #1c2a52; padding-top:12px;">
           <label>Strategi-digest (rekommenderat för billigare analys)</label>
           <textarea id="strategyDigest" placeholder="Kort, koncentrerad strategi: 10–20 bullets + regler..."></textarea>
+          <div id="strategyDigestDirty" class="muted" style="display:none; margin-top:6px;">
+            <span class="pill" style="border-color: rgba(255, 212, 138, 0.55); color: var(--warn);">Osparade ändringar</span>
+            <span style="margin-left:8px;">Klicka <b>Spara digest</b> för att spara på servern.</span>
+          </div>
           <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
             <button id="btnSaveStrategyDigest">Spara digest</button>
             <button id="btnGenerateStrategyDigest">Generera digest</button>
@@ -106,8 +349,7 @@
       <div class="card">
         <h3 style="margin:0 0 8px 0; font-size: 16px;">Innehav</h3>
         <div class="muted" id="holdingsMeta"></div>
-        <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
-          <button id="btnFetchQuotes">Hämta börskurser (Yahoo)</button>
+  <div class="actions" style="margin-top:10px;">
           <label class="muted" style="display:flex; gap:8px; align-items:center;">
             <input id="selectAllHoldings" type="checkbox" />
             Markera alla för analys
@@ -116,13 +358,85 @@
           <span id="quotesStatus" class="muted"></span>
           <span id="holdingsSelectionStatus" class="muted"></span>
         </div>
-        <div style="overflow:auto;">
+  <div class="table-wrap" style="margin-top:10px;">
           <table>
             <thead>
-              <tr><th>Analys</th><th>Ticker</th><th>Namn</th><th>Antal</th><th>Kurs</th><th>Valuta</th></tr>
+              <tr>
+                <th>Analys</th>
+                <th>Ticker</th>
+                <th>Namn</th>
+                <th>Tes</th>
+                <th>Antal</th>
+                <th class="col-price-compact">Kurs</th>
+                <th class="col-price">Kurs</th>
+                <th class="col-currency">Valuta</th>
+                <th class="col-value-compact">Värde</th>
+                <th class="col-value" id="holdingsSortValue">Värde</th>
+                <th class="col-weight" id="holdingsSortWeight">Andel</th>
+              </tr>
             </thead>
             <tbody id="holdings"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Thesis editor modal (per-aktie) -->
+      <div id="thesisModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal">
+          <header>
+            <div class="title">
+              <div>
+                <div style="font-weight:800; font-size:14px;">Redigera tes</div>
+                <div id="thesisModalSub" class="muted" style="font-size:12px; margin-top:2px;"></div>
+              </div>
+              <button id="btnCloseThesisModal" class="btn-quiet" type="button">Stäng</button>
+            </div>
+          </header>
+          <div class="body">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <div class="segmented" aria-label="Välj editorläge">
+                <button id="thesisModeDoc" class="active" type="button">Tes-dokument (JSON)</button>
+                <button id="thesisModeLegacy" type="button">Kort tes (text)</button>
+              </div>
+              <span id="thesisModalStatus" class="muted"></span>
+            </div>
+
+            <div id="thesisDocEditor" style="margin-top:12px;">
+              <label>JSON</label>
+              <textarea id="thesisDocText" placeholder="{\n  \"meta\": { \"ticker\": \"INVE\", \"company\": \"...\" }\n}" style="min-height: 260px;"></textarea>
+              <div class="hint">Sparas via <code>PUT /api/thesis-docs</code>. Kräver <code>meta.ticker</code>.</div>
+              <div style="margin-top:10px; border-top:1px solid #1c2a52; padding-top:10px;">
+                <div class="muted" style="margin-bottom:6px;">
+                  Ny funktion: läs upp ett dokument och låt LLM uppdatera tes-dokumentet.
+                </div>
+                <input id="thesisIngestFile" type="file" accept="text/plain,application/pdf,.txt,.md" />
+                <div class="actions" style="margin-top:10px; flex-wrap:wrap;">
+                  <button id="btnIngestThesisDoc" type="button">Läs upp & uppdatera tes</button>
+                  <label class="muted" style="display:flex; gap:8px; align-items:center;">
+                    <span>Mode</span>
+                    <select id="thesisIngestMode" style="background:#0b1220; color:#e6e8ee; border:1px solid #1c2a52; border-radius:10px; padding:8px;">
+                      <option value="merge" selected>Merge (rekommenderat)</option>
+                      <option value="replace">Replace</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="hint">Skickar filens text + befintlig JSON till <code>POST /api/thesis-docs/:ticker/ingest</code> och sparar resultatet.</div>
+              </div>
+              <div class="actions" style="margin-top:10px;">
+                <button id="btnSaveThesisDoc" class="btn-primary" type="button">Spara tes-dokument</button>
+                <button id="btnPrettyPrintDoc" type="button">Formatera JSON</button>
+              </div>
+            </div>
+
+            <div id="thesisLegacyEditor" style="margin-top:12px; display:none;">
+              <label>Kort tes</label>
+              <textarea id="thesisLegacyText" placeholder="Skriv en kort tes..." style="min-height: 160px;"></textarea>
+              <div class="hint">Sparas via <code>PUT /api/thesis/:ticker</code>.</div>
+              <div class="actions" style="margin-top:10px;">
+                <button id="btnSaveThesisLegacy" class="btn-primary" type="button">Spara tes</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -161,21 +475,24 @@
         <div id="thesisDocViewer" class="muted" style="margin-top:10px;"></div>
       </div>
 
-      <div class="card">
-        <h3 style="margin:0 0 8px 0; font-size: 16px;">(Kommer) Importera teser från PDF</h3>
-        <div class="muted">
-          Du har PDF-investeringsteser per aktie. Nästa steg är att lägga till en endpoint som tar PDF,
-          kör text-extraktion, och sparar som tes knutet till ticker.
-        </div>
-      </div>
-
   <p class="muted">Tips: Om du får 401 så kräver servern Basic Auth (APP_USER/APP_PASSWORD).</p>
     </main>
 
     <script>
       const $ = (id) => document.getElementById(id);
-      const status = (msg) => { $('status').textContent = msg || ''; };
-      const error = (msg) => { $('err').textContent = msg || ''; };
+      const status = (msg, kind = 'info') => {
+        const el = $('status');
+        const text = String(msg || '').trim();
+        el.textContent = text;
+        el.style.display = text ? 'block' : 'none';
+        el.className = kind === 'success' ? 'alert success' : 'alert';
+      };
+      const error = (msg) => {
+        const el = $('err');
+        const text = String(msg || '').trim();
+        el.textContent = text;
+        el.style.display = text ? 'block' : 'none';
+      };
 
       function setBusy(button, busyText) {
         if (!button) return () => {};
@@ -194,17 +511,58 @@
         return `<span class="pill ${cls}">${action}</span>`;
       }
 
+      // --- Draft protection (prevents accidental overwrite from periodic refresh) ---
+      let __digestDirty = false;
+      let __hydratingDigest = false;
+  let __digestJustSaved = false;
+      function setDigestDirty(next) {
+        __digestDirty = !!next;
+        const el = document.getElementById('strategyDigestDirty');
+        if (el) el.style.display = __digestDirty ? 'block' : 'none';
+      }
+      function saveLocalDraft(key, value) {
+        try {
+          if (value && String(value).trim()) localStorage.setItem(key, String(value));
+          else localStorage.removeItem(key);
+        } catch {
+          // ignore
+        }
+      }
+      function loadLocalDraft(key) {
+        try {
+          return localStorage.getItem(key) || '';
+        } catch {
+          return '';
+        }
+      }
+
       async function api(path, opts) {
         const res = await fetch(path, opts);
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          const msg = data.error || `${res.status} ${res.statusText}`;
-          if (res.status === 401) {
-            throw new Error(`401 Unauthorized. Servern kräver login (Basic Auth). (${msg})`);
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            const requestId = data?.requestId ? ` (requestId: ${data.requestId})` : '';
+            const stage = data?.stage ? ` (stage: ${data.stage})` : '';
+            const base = data?.error || `${res.status} ${res.statusText}`;
+          const shortBase = String(base || '').replaceAll(/\s+/g, ' ').trim();
+          const brief = shortBase.length > 160 ? `${shortBase.slice(0, 160)}…` : shortBase;
+          const msg = `${res.status} ${res.statusText}: ${brief}${requestId}${stage}`;
+            if (res.status === 401) {
+            throw new Error(
+              `401 Unauthorized. Servern krver login (Basic Auth). (${brief})${requestId}${stage}`
+            );
+            }
+            // Timeout returned from backend uses 200 with ok=false sometimes; but handle general errors too.
+          const err = new Error(msg);
+          err.details = {
+            status: res.status,
+            statusText: res.statusText,
+            error: shortBase,
+            requestId: data?.requestId,
+            stage: data?.stage,
+            url: path,
+          };
+          throw err;
           }
-          // Timeout returned from backend uses 200 with ok=false sometimes; but handle general errors too.
-          throw new Error(msg);
-        }
         return data;
       }
 
@@ -212,7 +570,26 @@
         error('');
         const p = await api('/api/portfolio');
         $('strategy').value = p.strategy?.text || '';
-  $('strategyDigest').value = p.strategyDigest?.text || '';
+        const serverDigest = p.strategyDigest?.text || '';
+
+        // Protect user's in-progress edits: only overwrite textarea when not dirty.
+        // Also avoid clobbering immediately after save/generate (refresh right after).
+        if (!__digestDirty && !__digestJustSaved) {
+          __hydratingDigest = true;
+          const draft = loadLocalDraft('strategyDigestDraft');
+          const nextValue = draft && draft.trim() ? draft : serverDigest;
+          // Only set if different to reduce cursor jumps.
+          if (($('strategyDigest').value || '') !== (nextValue || '')) {
+            $('strategyDigest').value = nextValue;
+          }
+          __hydratingDigest = false;
+          setDigestDirty(false);
+        }
+
+        if (__digestJustSaved) {
+          // Allow exactly one refresh cycle after save/generate without touching the textarea.
+          __digestJustSaved = false;
+        }
 
         if (p.portfolioStrategyDoc) {
           $('strategyDocInfo').innerHTML = 'Strukturerad strategi (JSON): <b>laddad</b>.';
@@ -221,7 +598,7 @@
         }
 
         const holdings = p.holdings || [];
-        // quotesByTicker gets filled when user clicks "Hämta börskurser"
+    // quotesByTicker can optionally be populated by other means (currently unused)
         window.__quotesByTicker = window.__quotesByTicker || {};
         const quotesByTicker = window.__quotesByTicker;
 
@@ -254,29 +631,123 @@
         }
 
         $('holdingsMeta').textContent = holdings.length ? `${holdings.length} innehav` : 'Inga innehav importerade än.';
-        $('holdings').innerHTML = holdingsNorm
-          .map((h) => {
-            const q = quotesByTicker[String(h.ticker || '').toUpperCase()];
-            // Prefer live quote if fetched, otherwise show imported per-share avgPrice.
-            const price =
-              q?.price != null
-                ? String(q.price)
-                : h.avgPrice != null
-                  ? Number(h.avgPrice).toFixed(2)
-                  : '';
-            // Prefer quote currency if fetched, otherwise show imported currency.
-            const currency = q?.currency || h.currency || '';
+
+        // Compute portfolio total value based on displayed price (quote if present, else avgPrice).
+        const toNum = (v) => {
+          const n = typeof v === 'number' ? v : Number(String(v ?? '').replace(',', '.'));
+          return Number.isFinite(n) ? n : 0;
+        };
+        const portfolioTotal = holdingsNorm.reduce((sum, h) => {
+          const t = String(h.ticker || '').toUpperCase();
+          const q = quotesByTicker[t];
+          const price = q?.price != null ? toNum(q.price) : h.avgPrice != null ? toNum(h.avgPrice) : 0;
+          const qty = toNum(h.quantity);
+          return sum + qty * price;
+        }, 0);
+
+        const fmtMoney = (n) => {
+          const x = Number(n ?? 0);
+          if (!Number.isFinite(x)) return '';
+          return x.toLocaleString('sv-SE', { maximumFractionDigits: 0 });
+        };
+        const fmtPct = (n) => {
+          const x = Number(n ?? 0);
+          if (!Number.isFinite(x)) return '';
+          return `${x.toLocaleString('sv-SE', { maximumFractionDigits: 1 })}%`;
+        };
+        // Precompute value/weight for each holding, then apply optional sorting.
+        const rows = holdingsNorm.map((h) => {
+          const q = quotesByTicker[String(h.ticker || '').toUpperCase()];
+
+          const priceStr =
+            q?.price != null
+              ? String(q.price)
+              : h.avgPrice != null
+                ? Number(h.avgPrice).toFixed(2)
+                : '';
+          const currency = q?.currency || h.currency || '';
+
+          const priceNum = q?.price != null ? toNum(q.price) : h.avgPrice != null ? toNum(h.avgPrice) : 0;
+          const qtyNum = toNum(h.quantity);
+          const value = qtyNum && priceNum ? qtyNum * priceNum : 0;
+          const weight = portfolioTotal > 0 ? (value / portfolioTotal) * 100 : 0;
+
+          return {
+            h,
+            priceStr,
+            currency,
+            value,
+            weight,
+          };
+        });
+
+        // Sorting state (persisted in-memory + localStorage)
+        window.__holdingsSort = window.__holdingsSort || (() => {
+          try {
+            const raw = localStorage.getItem('aktie_holdings_sort');
+            if (!raw) return { key: 'none', dir: 'desc' };
+            const obj = JSON.parse(raw);
+            if (!obj || typeof obj !== 'object') return { key: 'none', dir: 'desc' };
+            return {
+              key: obj.key === 'value' || obj.key === 'weight' ? obj.key : 'none',
+              dir: obj.dir === 'asc' || obj.dir === 'desc' ? obj.dir : 'desc',
+            };
+          } catch {
+            return { key: 'none', dir: 'desc' };
+          }
+        })();
+        const sort = window.__holdingsSort;
+        const dirMul = sort.dir === 'asc' ? 1 : -1;
+        if (sort.key === 'value') {
+          rows.sort((a, b) => (a.value - b.value) * dirMul);
+        } else if (sort.key === 'weight') {
+          rows.sort((a, b) => (a.weight - b.weight) * dirMul);
+        }
+
+        const theses = p.theses || [];
+        const thesisByTicker = new Map(theses.map((t) => [String(t.ticker || '').toUpperCase(), t]));
+        const docs = p.thesisDocsIndex || [];
+        const hasDocTicker = new Set(docs.map((d) => String(d.ticker || '').toUpperCase()));
+
+        $('holdings').innerHTML = rows
+          .map((r) => {
+            const h = r.h;
             const checked = h.analyze === true ? 'checked' : '';
+            const t = String(h.ticker || '').toUpperCase();
+            const hasDoc = hasDocTicker.has(t);
+            const legacy = thesisByTicker.get(t);
+            const thesisBadge = hasDoc ? 'PM' : legacy?.text ? 'Tes' : '—';
             return `<tr>
               <td><input type="checkbox" class="analyzeHolding" data-ticker="${escapeHtml(String(h.ticker))}" ${checked} /></td>
               <td>${escapeHtml(String(h.ticker))}</td>
               <td>${escapeHtml(String(h.name || ''))}</td>
+              <td>
+                <button class="btnEditThesis btn-mini" data-ticker="${escapeHtml(String(h.ticker))}" type="button" title="Redigera tes för ${escapeHtml(String(h.ticker))}">
+                  <span class="badge">${escapeHtml(thesisBadge)}</span>
+                  <span class="label"> · Redigera</span>
+                  <span class="label-short"> · Edit</span>
+                </button>
+              </td>
               <td>${escapeHtml(String(h.quantity ?? ''))}</td>
-              <td>${escapeHtml(String(price))}</td>
-              <td>${escapeHtml(String(currency))}</td>
+              <td class="col-price-compact">
+                <span class="holdingsPriceCompact">${escapeHtml(String(r.priceStr))} ${escapeHtml(String(r.currency))}</span>
+              </td>
+              <td class="col-price">${escapeHtml(String(r.priceStr))}</td>
+              <td class="col-currency">${escapeHtml(String(r.currency))}</td>
+              <td class="col-value-compact"><span class="holdingsValueCompact">${escapeHtml(fmtMoney(r.value))}</span></td>
+              <td class="col-value">${escapeHtml(fmtMoney(r.value))}</td>
+              <td class="col-weight">${escapeHtml(fmtPct(r.weight))}</td>
             </tr>`;
           })
           .join('');
+
+        document.querySelectorAll('.btnEditThesis').forEach((el) => {
+          el.onclick = async () => {
+            const ticker = String(el.getAttribute('data-ticker') || '').trim().toUpperCase();
+            if (!ticker) return;
+            await openThesisEditor({ ticker, thesisByTicker, hasDocTicker });
+          };
+        });
 
         // Hook up per-row checkbox changes.
         document.querySelectorAll('.analyzeHolding').forEach((el) => {
@@ -309,12 +780,39 @@
           };
         });
 
-        const theses = p.theses || [];
+        // Wire up sorting headers (value/weight)
+        const bindSort = (id, key) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.style.cursor = 'pointer';
+          el.title = 'Klicka för att sortera';
+          el.onclick = () => {
+            const s = (window.__holdingsSort = window.__holdingsSort || { key: 'none', dir: 'desc' });
+            if (s.key === key) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+            else {
+              s.key = key;
+              s.dir = 'desc';
+            }
+            try {
+              localStorage.setItem('aktie_holdings_sort', JSON.stringify(s));
+            } catch {
+              // ignore
+            }
+            refresh();
+          };
+
+          const s = window.__holdingsSort;
+          const arrow = s.key === key ? (s.dir === 'asc' ? ' ▲' : ' ▼') : '';
+          const base = key === 'value' ? 'Värde' : 'Andel';
+          el.textContent = base + arrow;
+        };
+        bindSort('holdingsSortValue', 'value');
+        bindSort('holdingsSortWeight', 'weight');
+
         $('thesesList').innerHTML = theses.length
           ? theses.map(t => `<div><b>${t.ticker}</b>: ${t.text} <span class="muted">(${new Date(t.updatedAt).toLocaleString()})</span></div>`).join('')
           : '<div>Inga (legacy) teser sparade än.</div>';
 
-        const docs = p.thesisDocsIndex || [];
         $('thesisDocsList').innerHTML = docs.length
           ? `<div><b>Tes-dokument (JSON)</b>: ${docs
               .map(
@@ -344,9 +842,28 @@
         try {
           const usage = await api('/api/usage');
           const u = usage.usage;
-          $('usage').textContent =
-            `Requests: ${u.totalRequests}, inputTokens≈${u.totalInputTokens}, outputTokens≈${u.totalOutputTokens} ` +
-            `(uppdaterad ${new Date(u.updatedAt).toLocaleString()})`;
+          const fmtInt = (n) => {
+            const x = Number(n ?? 0);
+            return Number.isFinite(x) ? x.toLocaleString('sv-SE') : '0';
+          };
+          const totalTokens = Number(u.totalInputTokens ?? 0) + Number(u.totalOutputTokens ?? 0);
+          $('usage').innerHTML = `
+            <div class="row" style="gap:8px;">
+              <div class="card" style="padding:10px; margin:0; box-shadow:none; background: rgba(11, 18, 32, 0.35);">
+                <div class="muted" style="font-size:12px;">Anrop</div>
+                <div style="font-size:18px; font-weight:700; margin-top:2px;">${fmtInt(u.totalRequests)}</div>
+              </div>
+              <div class="card" style="padding:10px; margin:0; box-shadow:none; background: rgba(11, 18, 32, 0.35);">
+                <div class="muted" style="font-size:12px;">Tokens (tot)</div>
+                <div style="font-size:18px; font-weight:700; margin-top:2px;">${fmtInt(totalTokens)}</div>
+                <div class="muted" style="font-size:12px; margin-top:2px;">in≈${fmtInt(u.totalInputTokens)} · out≈${fmtInt(u.totalOutputTokens)}</div>
+              </div>
+              <div class="card" style="padding:10px; margin:0; box-shadow:none; background: rgba(11, 18, 32, 0.35);">
+                <div class="muted" style="font-size:12px;">Senast uppdaterad</div>
+                <div style="font-size:13px; font-weight:650; margin-top:6px;">${new Date(u.updatedAt).toLocaleString()}</div>
+              </div>
+            </div>
+          `;
         } catch (e) {
           $('usage').textContent = `Kunde inte läsa usage: ${e.message}`;
         }
@@ -488,8 +1005,30 @@
           }
           const fd = new FormData();
           fd.append('file', f);
-          await api('/api/import/avanza', { method: 'POST', body: fd });
-          status('Import klar.');
+          const res = await api('/api/import/avanza', { method: 'POST', body: fd });
+
+          const d = res?.diff;
+          if (d) {
+            const lines = [];
+            if (Array.isArray(d.added) && d.added.length) {
+              lines.push(`Nya: ${d.added.map((x) => `${x.ticker} (${x.quantity})`).join(', ')}`);
+            }
+            if (Array.isArray(d.removed) && d.removed.length) {
+              lines.push(`Borttagna: ${d.removed.map((x) => `${x.ticker} (${x.quantity})`).join(', ')}`);
+            }
+            if (Array.isArray(d.changed) && d.changed.length) {
+              const max = 12;
+              const slice = d.changed.slice(0, max);
+              const rest = d.changed.length > max ? ` (+${d.changed.length - max} till)` : '';
+              lines.push(`Ändrat antal: ${slice.map((x) => `${x.ticker} ${x.from}→${x.to}`).join(', ')}${rest}`);
+            }
+            const summary =
+              `Import klar (${d.prevCount}→${d.nextCount} innehav). ` +
+              (lines.length ? lines.join(' | ') : 'Inga förändringar i innehav/antal.');
+            status(summary, 'success');
+          } else {
+            status('Import klar.', 'success');
+          }
           await refresh();
         } catch (e) {
           error(e.message);
@@ -526,30 +1065,6 @@
         }
       };
 
-      $('btnFetchQuotes').onclick = async () => {
-        const done = setBusy($('btnFetchQuotes'), 'Hämtar…');
-        $('quotesStatus').textContent = 'Hämtar från Yahoo…';
-        try {
-          const res = await api('/api/quotes/yahoo');
-          const quotes = res.quotes || [];
-          const by = {};
-          for (const q of quotes) {
-            if (q && q.symbol) by[String(q.symbol).toUpperCase()] = q;
-          }
-          window.__quotesByTicker = by;
-          $('quotesStatus').textContent = `Klart: ${quotes.length} kurser.`;
-          await refresh();
-        } catch (e) {
-          $('quotesStatus').textContent = 'Misslyckades.';
-          error(e.message || String(e));
-        } finally {
-          done();
-          setTimeout(() => {
-            if ($('quotesStatus').textContent?.startsWith('Klart')) $('quotesStatus').textContent = '';
-          }, 5000);
-        }
-      };
-
       $('btnSaveStrategy').onclick = async () => {
         const done = setBusy($('btnSaveStrategy'), 'Sparar…');
         try {
@@ -582,6 +1097,9 @@
           });
           $('strategyDigestSaved').textContent = 'Sparat.';
           setTimeout(() => ($('strategyDigestSaved').textContent = ''), 1500);
+          setDigestDirty(false);
+          saveLocalDraft('strategyDigestDraft', '');
+          __digestJustSaved = true;
           await refresh();
         } catch (e) {
           error(e.message);
@@ -604,8 +1122,11 @@
           });
 
           $('strategyDigest').value = res.digest?.text || '';
+          setDigestDirty(false);
+          saveLocalDraft('strategyDigestDraft', '');
           $('strategyDigestSaved').textContent = `Genererad (${res.meta?.provider || 'ok'}).`;
           setTimeout(() => ($('strategyDigestSaved').textContent = ''), 2000);
+          __digestJustSaved = true;
           await refresh();
         } catch (e) {
           error(e.message);
@@ -614,6 +1135,13 @@
           setTimeout(() => status(''), 2000);
         }
       };
+
+      // Track local edits to digest so refresh() doesn't clobber them.
+      $('strategyDigest').addEventListener('input', () => {
+        if (__hydratingDigest) return;
+  setDigestDirty(true);
+        saveLocalDraft('strategyDigestDraft', $('strategyDigest').value || '');
+      });
 
       $('btnUploadStrategyDoc').onclick = async () => {
         try {
@@ -711,6 +1239,215 @@
           error(e.message);
         } finally {
           setTimeout(() => status(''), 2000);
+        }
+      };
+
+      // --- Per-aktie tes-editor (modal) ---
+      let __thesisModalState = { open: false, ticker: '' };
+
+      function showThesisModal(open) {
+        const back = $('thesisModalBackdrop');
+        if (!back) return;
+        back.style.display = open ? 'flex' : 'none';
+        back.setAttribute('aria-hidden', open ? 'false' : 'true');
+      }
+
+      function setThesisMode(mode) {
+        const isDoc = mode === 'doc';
+        $('thesisDocEditor').style.display = isDoc ? 'block' : 'none';
+        $('thesisLegacyEditor').style.display = isDoc ? 'none' : 'block';
+        $('thesisModeDoc').classList.toggle('active', isDoc);
+        $('thesisModeLegacy').classList.toggle('active', !isDoc);
+      }
+
+      async function openThesisEditor(args) {
+        const ticker = String(args?.ticker || '').trim().toUpperCase();
+        const thesisByTicker = args?.thesisByTicker;
+        const hasDocTicker = args?.hasDocTicker;
+
+        if (!ticker) return;
+        __thesisModalState = { open: true, ticker };
+        $('thesisModalSub').textContent = ticker;
+        $('thesisModalStatus').textContent = 'Laddar...';
+        $('thesisDocText').value = '';
+        $('thesisLegacyText').value = '';
+
+        // Prefer doc-mode if there is a doc.
+        setThesisMode(hasDocTicker?.has?.(ticker) ? 'doc' : 'legacy');
+        showThesisModal(true);
+
+        // Load legacy thesis text from already fetched portfolio payload.
+        const legacy = thesisByTicker?.get?.(ticker);
+        if (legacy?.text) $('thesisLegacyText').value = legacy.text;
+
+        // Load thesis doc if it exists (404 is ok).
+        try {
+          const res = await api(`/api/thesis-docs/${encodeURIComponent(ticker)}`);
+          $('thesisDocText').value = JSON.stringify(res.doc, null, 2);
+        } catch {
+          // ignore
+        }
+
+        $('thesisModalStatus').textContent = '';
+      }
+
+      function closeThesisModal() {
+        __thesisModalState = { open: false, ticker: '' };
+        showThesisModal(false);
+        $('thesisModalStatus').textContent = '';
+      }
+
+      $('btnCloseThesisModal').onclick = () => closeThesisModal();
+      $('thesisModalBackdrop').onclick = (ev) => {
+        if (ev.target && ev.target.id === 'thesisModalBackdrop') closeThesisModal();
+      };
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && __thesisModalState.open) closeThesisModal();
+      });
+
+      $('thesisModeDoc').onclick = () => setThesisMode('doc');
+      $('thesisModeLegacy').onclick = () => setThesisMode('legacy');
+
+      $('btnPrettyPrintDoc').onclick = () => {
+        try {
+          const obj = JSON.parse(String($('thesisDocText').value || ''));
+          $('thesisDocText').value = JSON.stringify(obj, null, 2);
+          $('thesisModalStatus').textContent = 'Formaterade JSON.';
+        } catch (e) {
+          $('thesisModalStatus').textContent = `Ogiltig JSON: ${e.message}`;
+        }
+      };
+
+      $('btnSaveThesisDoc').onclick = async () => {
+        const ticker = __thesisModalState.ticker;
+        const done = setBusy($('btnSaveThesisDoc'), 'Sparar...');
+        try {
+          const raw = String($('thesisDocText').value || '').trim();
+          if (!raw) throw new Error('JSON kan inte vara tomt.');
+          const obj = JSON.parse(raw);
+          if (!obj.meta || typeof obj.meta !== 'object') obj.meta = {};
+          obj.meta.ticker = ticker;
+          await api('/api/thesis-docs', {
+            method: 'PUT',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(obj),
+          });
+          $('thesisModalStatus').textContent = 'Sparat tes-dokument.';
+          await refresh();
+        } catch (e) {
+          $('thesisModalStatus').textContent = `Kunde inte spara: ${e.message}`;
+        } finally {
+          done();
+        }
+      };
+
+      $('btnSaveThesisLegacy').onclick = async () => {
+        const ticker = __thesisModalState.ticker;
+        const done = setBusy($('btnSaveThesisLegacy'), 'Sparar...');
+        try {
+          const text = String($('thesisLegacyText').value || '').trim();
+          await api(`/api/thesis/${encodeURIComponent(ticker)}`, {
+            method: 'PUT',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ text }),
+          });
+          $('thesisModalStatus').textContent = 'Sparat tes.';
+          await refresh();
+        } catch (e) {
+          $('thesisModalStatus').textContent = `Kunde inte spara: ${e.message}`;
+        } finally {
+          done();
+        }
+      };
+
+      $('btnIngestThesisDoc').onclick = async () => {
+        const ticker = __thesisModalState.ticker;
+        const done = setBusy($('btnIngestThesisDoc'), 'Läser in...');
+        try {
+          const f = $('thesisIngestFile')?.files?.[0];
+          if (!f) throw new Error('Välj en fil först.');
+          if (f.size > 12 * 1024 * 1024) throw new Error('Filen är för stor (max 12MB i UI).');
+
+          // NOTE: Browser cannot reliably extract text from PDF without extra deps.
+          // We still allow selecting PDFs, but we'll send the raw text we can read.
+          // For a PDF, File.text() returns gibberish in many browsers.
+          const rawText = await f.text();
+          if (!String(rawText || '').trim()) throw new Error('Kunde inte läsa text från filen. Prova en .txt/.md.');
+
+          const MAX_CHARS = 200_000;
+          // We'll keep head+tail and insert a marker, but must stay strictly <= MAX_CHARS.
+          const MARKER = (origLen) =>
+            `\n\n[...TRIMMED: original ${origLen} chars; kept head+tail within ${MAX_CHARS}...]\n\n`;
+
+          const fileMb = (f.size / (1024 * 1024)).toFixed(2);
+          let documentText = rawText;
+          let trimmed = false;
+          if (documentText.length > MAX_CHARS) {
+            const marker = MARKER(rawText.length);
+            // Split budget between head and tail.
+            const budget = Math.max(0, MAX_CHARS - marker.length);
+            const headBudget = Math.floor(budget * 0.6);
+            const tailBudget = budget - headBudget;
+            const head = documentText.slice(0, headBudget);
+            const tail = documentText.slice(-tailBudget);
+            documentText = head + marker + tail;
+            trimmed = true;
+          }
+
+          const mode = String($('thesisIngestMode')?.value || 'merge');
+
+          $('thesisModalStatus').textContent =
+            `Skickar till LLM... (${documentText.length} tecken, fil ${fileMb} MB` +
+            (trimmed ? `, TRIM` : ``) +
+            `)`;
+          const res = await api(`/api/thesis-docs/${encodeURIComponent(ticker)}/ingest`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              documentText,
+              docHint: f.name,
+              mode: mode === 'replace' ? 'replace' : 'merge',
+            }),
+          });
+
+          if (res?.doc) {
+            $('thesisDocText').value = JSON.stringify(res.doc, null, 2);
+            setThesisMode('doc');
+            $('thesisModalStatus').textContent = `Uppdaterade tes (${res.provider || 'ok'}).`;
+            await refresh();
+          } else {
+            $('thesisModalStatus').textContent = 'Klart, men inget doc returnerades.';
+          }
+        } catch (e) {
+          const msg = String(e?.message ?? e);
+          const details = e?.details;
+          // Keep the status line short. If we have backend details, offer an expander.
+          if (details && (details.requestId || details.stage)) {
+            const extra = `${details.requestId ? `requestId: ${details.requestId}` : ''}$${
+              details.stage ? ` stage: ${details.stage}` : ''
+            }`;
+            const extraClean = extra.replaceAll('$', '').trim();
+            $('thesisModalStatus').innerHTML =
+              `Kunde inte l4sa upp: ${escapeHtml(msg)} ` +
+              `<a href="#" id="thesisIngestShowDetails" class="muted" style="margin-left:6px;">Visa detaljer</a>` +
+              `<div id="thesisIngestDetails" style="display:none; margin-top:8px;">` +
+              `<pre style="white-space:pre-wrap; word-break:break-word; background:#0b1220; border:1px solid #1c2a52; border-radius:10px; padding:10px;">${escapeHtml(
+                JSON.stringify({ ...details, hint: extraClean }, null, 2)
+              )}</pre></div>`;
+            const a = document.getElementById('thesisIngestShowDetails');
+            if (a) {
+              a.onclick = (ev) => {
+                ev.preventDefault();
+                const el = document.getElementById('thesisIngestDetails');
+                if (!el) return;
+                el.style.display = el.style.display === 'none' ? 'block' : 'none';
+              };
+            }
+          } else {
+            $('thesisModalStatus').textContent = `Kunde inte lsa upp: ${msg}`;
+          }
+        } finally {
+          done();
         }
       };
 

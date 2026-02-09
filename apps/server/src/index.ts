@@ -27,7 +27,6 @@ import {
 import { runMockAnalysis } from './analysisMock.js';
 import { runOpenAIAnalysis } from './analysisOpenAI.js';
 import { getSchedulerStatus, startNightlyScheduler } from './scheduler.js';
-import { getQuotes } from './marketData.js';
 
 // Load environment variables from .env (apps/server/.env) for local dev.
 dotenv.config();
@@ -162,21 +161,6 @@ app.get('/api/usage', async () => ({ ok: true, usage: usageTotals }));
 
 app.get('/api/scheduler', async () => ({ ok: true, scheduler: getSchedulerStatus() }));
 
-// Manual quotes fetch (Yahoo only). UI calls this when user clicks a button.
-app.get('/api/quotes/yahoo', async (_req: any, reply: any) => {
-  try {
-    const holdings = await getHoldings();
-    const symbols = holdings.map((h) => h.ticker).filter(Boolean);
-    const quotes = await getQuotes({
-      symbols,
-      ttlMs: Number(process.env.QUOTE_CACHE_TTL_MS ?? 15_000),
-    });
-    return { ok: true, quotes };
-  } catch (err: any) {
-    return reply.code(400).send({ ok: false, error: String(err?.message ?? err) });
-  }
-});
-
 app.get('/', async (_req: any, reply: any) => {
   const file = path.join(process.cwd(), 'src', 'ui.html');
   const html = await readFile(file, 'utf8');
@@ -248,6 +232,197 @@ app.put('/api/thesis-docs', async (req: any) => {
   return { ok: true };
 });
 
+app.post('/api/thesis-docs/:ticker/ingest', async (req: any, reply: any) => {
+  const paramsSchema = z.object({ ticker: z.string().min(1).max(40) });
+  const bodySchema = z.object({
+    documentText: z.string().min(1).max(200_000),
+    docHint: z.string().max(2_000).optional().default(''),
+    mode: z.enum(['merge', 'replace']).optional().default('merge'),
+  });
+
+  const requestId = String(req.id ?? '').trim();
+  let stage = 'parse';
+
+  try {
+    const { ticker } = paramsSchema.parse(req.params);
+    const body = bodySchema.parse(req.body);
+
+    stage = 'load_existing';
+    const existing = await getThesisDoc(ticker);
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    const model = process.env.OPENAI_MODEL ?? 'gpt-4.1-mini';
+
+    const existingStr = existing ? JSON.stringify(existing, null, 2) : '';
+
+    const system =
+      'Du är en investering/portfolio-assistent. Du får två inputs: (1) ett befintligt tes-dokument (JSON) och (2) en ny källtext (dokument). ' +
+      'Din uppgift är att analysera det nya dokumentet och endast uppdatera tes-dokumentet om dokumentet innehåller relevanta, explicita fakta som ändrar/kompletterar tesen (t.ex. siffror, nya risker, nya triggers, ändrade förutsättningar). ' +
+      'HITTA INTE PÅ fakta. Om något inte går att verifiera från NEW_DOCUMENT_TEXT ska det inte skrivas som fakta; lägg det som en fråga istället. ' +
+      'Om inget behöver ändras: returnera tes-dokumentet i princip oförändrat (förutom meta.updatedAt). ' +
+      'Returnera STRICT JSON och inget annat.';
+
+    const schemaHint =
+      '{"meta": {"ticker": string, "company"?: string, "date"?: string, "updatedAt"?: string}, "summary"?: string, "highlights"?: string[], "bullCase"?: string[], "bearCase"?: string[], "risks"?: string[], "questions"?: string[], "sources"?: string[] }';
+
+    const userText =
+      `TICKER: ${String(ticker).toUpperCase()}\n` +
+      `MODE: ${body.mode}\n` +
+      (body.docHint ? `DOC_HINT: ${body.docHint}\n` : '') +
+      '\n' +
+      'EXISTING_THESIS_DOC_JSON (source of truth unless updated):\n' +
+      (existingStr || '(none)') +
+      '\n\n' +
+      'NEW_DOCUMENT_TEXT (analysera för eventuella uppdateringar):\n' +
+      body.documentText +
+      '\n\n' +
+      'INSTRUCTIONS (viktigt):\n' +
+      '- Identifiera endast information i NEW_DOCUMENT_TEXT som påverkar tes-dokumentet.\n' +
+      '- Uppdatera tes-dokumentet (merge) med dessa förändringar.\n' +
+      '- Om MODE=replace: skapa en helt ny tes baserat på NEW_DOCUMENT_TEXT, men håll samma JSON-format.\n' +
+      '- Om NEW_DOCUMENT_TEXT inte innehåller något som kräver ändring: returnera samma dokument med oförändrade fält (förutom meta.updatedAt).\n' +
+      '- Behåll punkter korta. Lägg bara till "sources"-rad för den nya filen om du faktiskt använde info därifrån.\n' +
+      '- Svara ENDAST som JSON som matchar ungefär detta schema: ' +
+      schemaHint;
+
+    const makeMock = () => {
+      const now = new Date().toISOString();
+      const updated = {
+        ...(existing || {}),
+        meta: {
+          ...(existing?.meta || {}),
+          ticker: String(ticker).toUpperCase(),
+          updatedAt: now,
+        },
+        sources: Array.from(
+          new Set(
+            [
+              ...((existing as any)?.sources || []),
+              body.docHint || 'ingested-document',
+            ].filter(Boolean)
+          )
+        ),
+        questions: Array.from(
+          new Set(
+            [
+              ...((existing as any)?.questions || []),
+              'OPENAI_API_KEY saknas: kunde inte analysera dokumentet automatiskt. Vad i dokumentet ska uppdatera tesen?',
+            ].filter(Boolean)
+          )
+        ),
+      };
+
+      return {
+        ok: true,
+        provider: 'mock',
+        model: 'mock',
+        doc: updated,
+        note: 'OPENAI_API_KEY saknas; returnerade en minimal uppdatering av meta.updatedAt + en fråga i tesen.',
+      };
+    };
+
+    if (!apiKey) {
+      const mock = makeMock();
+      await upsertThesisDoc(mock.doc as any);
+      return mock;
+    }
+
+    const requestBody = {
+      model,
+      input: [
+        { role: 'system', content: system },
+        { role: 'user', content: [{ type: 'input_text', text: userText }] },
+      ],
+      temperature: 0.2,
+    };
+
+    stage = 'openai_fetch';
+    const res = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    stage = 'openai_read';
+    const responseText = await res.text().catch(() => '');
+    if (!res.ok) {
+      return reply.code(502).send({
+        ok: false,
+        error: `OpenAI API error ${res.status}: ${responseText.slice(0, 500)}`,
+        requestId,
+        stage,
+      });
+    }
+
+    stage = 'openai_parse_outer';
+    const json = (responseText ? JSON.parse(responseText) : {}) as any;
+    const text =
+      (typeof json?.output_text === 'string' && json.output_text) ||
+      (Array.isArray(json?.output)
+        ? json.output
+            .flatMap((o: any) => (Array.isArray(o?.content) ? o.content : []))
+            .map((c: any) => (typeof c?.text === 'string' ? c.text : ''))
+            .join('')
+        : '');
+
+    if (!text) {
+      return reply
+        .code(502)
+        .send({ ok: false, error: 'OpenAI response missing output text', requestId, stage });
+    }
+
+    stage = 'openai_parse_json';
+    let updated: any;
+    try {
+      updated = JSON.parse(text);
+    } catch {
+      return reply
+        .code(502)
+        .send({ ok: false, error: 'OpenAI response was not valid JSON', requestId, stage });
+    }
+
+    if (!updated || typeof updated !== 'object') {
+      return reply
+        .code(502)
+        .send({ ok: false, error: 'OpenAI returned non-object JSON', requestId, stage });
+    }
+    if (!updated.meta || typeof updated.meta !== 'object') updated.meta = {};
+    updated.meta.ticker = String(ticker).toUpperCase();
+    updated.meta.updatedAt = new Date().toISOString();
+
+    stage = 'persist';
+    await upsertThesisDoc(updated);
+    return { ok: true, provider: 'openai', model, doc: updated };
+  } catch (err: any) {
+    // Zod validation errors should be client errors (400) with a clear message.
+    // In particular, large documentText commonly triggers "too_big".
+    if (err && typeof err === 'object' && err.name === 'ZodError') {
+      const issues = Array.isArray((err as any).issues) ? (err as any).issues : [];
+      const docIssue = issues.find(
+        (i: any) => Array.isArray(i?.path) && i.path.join('.') === 'documentText'
+      );
+      const max = docIssue?.maximum;
+      const code = docIssue?.code;
+      const friendly =
+        code === 'too_big' && typeof max === 'number'
+          ? `Dokument-texten är för lång. Max är ${max} tecken. (Tips: använd kortare utdrag eller låt UI trimma)`
+          : 'Ogiltig input.';
+      return reply.code(400).send({
+        ok: false,
+        error: friendly,
+        requestId,
+        stage,
+        details: issues,
+      });
+    }
+
+    const msg = String(err?.message ?? err);
+    req.log?.error?.({ err, requestId, stage }, 'thesis-doc ingest failed');
+    return reply.code(500).send({ ok: false, error: msg, requestId, stage });
+  }
+});
 app.get('/api/portfolio-strategy', async () => {
   const doc = await getPortfolioStrategyDoc();
   return { doc };
@@ -276,8 +451,70 @@ app.post('/api/import/avanza', async (req: any, reply: any) => {
     return reply.code(400).send({ error: 'No holdings found. CSV columns may not match expected Avanza export.' });
   }
 
+  const prev = await getHoldings();
+
+  const toMap = (arr: any[]) => {
+    const m = new Map<string, any>();
+    for (const h of arr || []) {
+      const t = String(h?.ticker ?? '').toUpperCase().trim();
+      if (!t) continue;
+      m.set(t, h);
+    }
+    return m;
+  };
+  const prevMap = toMap(prev);
+  const nextMap = toMap(holdings);
+
+  const added: any[] = [];
+  const removed: any[] = [];
+  const changed: any[] = [];
+
+  for (const [ticker, nextH] of nextMap.entries()) {
+    if (!prevMap.has(ticker)) {
+      added.push({
+        ticker,
+        name: nextH?.name ?? '',
+        quantity: nextH?.quantity ?? 0,
+        currency: nextH?.currency,
+      });
+      continue;
+    }
+    const prevH = prevMap.get(ticker);
+    const prevQty = Number(prevH?.quantity ?? 0);
+    const nextQty = Number(nextH?.quantity ?? 0);
+    if (Number.isFinite(prevQty) && Number.isFinite(nextQty) && prevQty !== nextQty) {
+      changed.push({
+        ticker,
+        name: nextH?.name ?? prevH?.name ?? '',
+        from: prevQty,
+        to: nextQty,
+        delta: nextQty - prevQty,
+      });
+    }
+  }
+  for (const [ticker, prevH] of prevMap.entries()) {
+    if (!nextMap.has(ticker)) {
+      removed.push({
+        ticker,
+        name: prevH?.name ?? '',
+        quantity: prevH?.quantity ?? 0,
+        currency: prevH?.currency,
+      });
+    }
+  }
+
   await setHoldings(holdings);
-  return { ok: true, imported: holdings.length, holdings };
+  return {
+    ok: true,
+    imported: holdings.length,
+    diff: {
+      added,
+      removed,
+      changed,
+      prevCount: prev?.length ?? 0,
+      nextCount: holdings.length,
+    },
+  };
 });
 
 app.put('/api/strategy', async (req: any) => {

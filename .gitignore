@@ -24,6 +24,10 @@ node_modules/
 .env
 **/.env
 
+# Server runtime data (local/private)
+apps/server/data/**
+!apps/server/data/.gitkeep
+
 # Build output
 apps/server/dist/
 
